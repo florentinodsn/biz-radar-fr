@@ -1,0 +1,56 @@
+name: Daily Biz Radar
+
+on:
+  schedule:
+    # 08:00 CET (07:00 UTC en hiver / 06:00 UTC en été — on cible 07:00 UTC ≈ 08:00 CET)
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  radar:
+    name: Run radar & commit state
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild native modules
+        run: npm rebuild better-sqlite3
+
+      - name: Run biz radar
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SERPAPI_WEEKLY_ONLY: "true"
+          ALERT_SCORE_THRESHOLD: "70"
+        run: npm run radar
+
+      - name: Commit DB & report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/deals.db data/deals.db-wal data/deals.db-shm DEALS_REPORT.md || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(radar): update deals DB and report $(date -u +%Y-%m-%d)"
+            git push
+          fi

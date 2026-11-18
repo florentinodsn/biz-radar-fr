@@ -1,0 +1,37 @@
+{
+  "name": "biz-radar-fr",
+  "version": "1.0.0",
+  "description": "Veille automatisée d'entreprises à racheter en France (cessions retraite + reprises judiciaires)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "radar": "tsx src/index.ts",
+    "radar:dry": "tsx src/index.ts --dry-run",
+    "typecheck": "tsc --noEmit",
+    "db:init": "tsx src/scripts/initDb.ts"
+  },
+  "keywords": [
+    "m-a",
+    "cession",
+    "pme",
+    "veille",
+    "serpapi",
+    "gemini"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^16.6.1",
+    "openai": "^4.104.0",
+    "serpapi": "^2.2.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.29",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
